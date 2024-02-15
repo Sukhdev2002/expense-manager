@@ -1,48 +1,20 @@
-const path = require('path');
 const express = require('express');
-const bodyParser = require('body-parser');
-
-console.log('environment    ', process.env.ENVIRONMENT)
-console.log('PORT    ', process.env.PORT)
-console.log('MONGO_CONNECTION_STRING    ', process.env.MONGO_CONNECTION_STRING)
-if(process.env.ENVIRONMENT !== 'production') {
-    require('dotenv').config()
-}
-
-
-const taskController = require('./controller/task.controller')
-
-
+const cors = require('cors');
+const userRoutes = require('./routes/user.routes');
+const expenseRoutes = require('./routes/expense.routes');
+const { connect } = require('./config/db.config');
+const logger = require('./logger/api.logger');
 
 const app = express();
-const port = process.env.PORT || 3089;
+app.use(express.json());
+app.use(cors());
 
-app.use(express.static(path.join(__dirname, './ui/build')));
-app.use(bodyParser.json());
+connect();
 
-app.get('/api/tasks', (req, res) => {
-    taskController.getTasks().then(data => res.json(data));
+app.use('/api/users', userRoutes);
+app.use('/api/expenses', expenseRoutes);
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+    logger.info(`Server started on port ${PORT}`);
 });
-
-app.post('/api/task', (req, res) => {
-    console.log(req.body);
-    taskController.createTask(req.body.task).then(data => res.json(data));
-});
-
-app.put('/api/task', (req, res) => {
-    taskController.updateTask(req.body.task).then(data => res.json(data));
-});
-
-app.delete('/api/task/:id', (req, res) => {
-    taskController.deleteTask(req.params.id).then(data => res.json(data));
-});
-
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, './ui/build/index.html'));
-});
-
-
-
-app.listen(port, () => {
-    console.log(`Server listening on the port  ${port}`);
-})

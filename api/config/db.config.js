@@ -6,6 +6,7 @@ const connect = () => {
     const url = "mongodb+srv://admin:ZMQCMKY3HfXsVE8D@cluster0.pfdfh.mongodb.net/?retryWrites=true&w=majority";
     logger.info("process.env.MONGO_CONNECTION_STRING :::" + url);
 
+    // "mongodb+srv://admin:ZMQCMKY3HfXsVE8D@cluster0.pfdfh.mongodb.net/?retryWrites=true&w=majority"
     mongoose.connect(url, {
         useNewUrlParser: true,
         useFindAndModify: true,
