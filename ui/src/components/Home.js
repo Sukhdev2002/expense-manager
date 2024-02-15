@@ -1,22 +1,17 @@
-import React from 'react';
-
+import React, {useState} from 'react';
+import Navigation from './navigation/navigation';
 
 function Home() {
 
+  const [selectedMenu, setSelectedMenu] = useState('home');
 
-
-    
   return (
-    
-      <div>
-      <h1>home page</h1>
-        
-
+    <div>
+      <Navigation onMenuClick={setSelectedMenu} selected={selectedMenu} />
+      <div style={{padding: '24px'}}>
+        {selectedMenu}
       </div>
-   
-   
-   
-
+    </div>
   );
 }
 
