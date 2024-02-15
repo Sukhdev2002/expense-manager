@@ -4,7 +4,7 @@ WORKDIR /usr/src
 COPY ui/ ./ui/
 RUN cd ui && npm install && npm run build
 
-# Stage2: API Build
+# Stage2: API Buildnpm
 FROM node:14-slim AS api-build
 WORKDIR /usr/src
 COPY api/ ./api/
