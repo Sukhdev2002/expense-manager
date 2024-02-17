@@ -1,15 +1,15 @@
-import React, {useState} from 'react';
+/* eslint-disable react/jsx-filename-extension */
+import React, { useState } from 'react';
 import Navigation from './navigation/navigation';
-
+import  Header from './Header';
 function Home() {
-
   const [selectedMenu, setSelectedMenu] = useState('home');
 
   return (
     <div>
       <Navigation onMenuClick={setSelectedMenu} selected={selectedMenu} />
-      <div style={{padding: '24px'}}>
-        {selectedMenu}
+      <div>
+      <Header/>
       </div>
     </div>
   );
