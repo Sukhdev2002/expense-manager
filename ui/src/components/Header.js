@@ -43,7 +43,7 @@ const Header = () => {
             const decodedToken = jwt_decode(token || '');
             const userId = decodedToken?.userId;
 
-            const response = await fetch('http://localhost:5000/api/category', {
+            const response = await fetch('https://self-manage-finance.onrender.com/api/category', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -61,9 +61,9 @@ const Header = () => {
 
             // Extract subcategories
             const extractedSubcategories = data.reduce((acc, category) => {
-                const subs = category.subcategories.map(sub => ({
-                    id: sub._id,
-                    name: sub.name,
+                const subs = category.subcategories.map(subcategory => ({
+                    id: category._id + '-' + subcategory, // Generate a unique ID for each subcategory
+                    name: subcategory,
                     categoryId: category._id
                 }));
                 return [...acc, ...subs];
@@ -81,7 +81,7 @@ const Header = () => {
             const decodedToken = jwt_decode(token|| ''); // Decode the JWT token to extract the user ID
             const userId = decodedToken?.userId;
              // Assuming you're storing the token in localStorage
-            const response = await fetch('http://localhost:5000/api/expenses', {
+            const response = await fetch('https://self-manage-finance.onrender.com/api/expenses', {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                     'Content-Type': 'application/json'
@@ -102,7 +102,7 @@ const Header = () => {
             const token = localStorage.getItem('token');
             const decodedToken = jwt_decode(token|| ''); // Decode the JWT token to extract the user ID
             const userId = decodedToken?.userId;
-            const response = await fetch('http://localhost:5000/api/category', {
+            const response = await fetch('https://self-manage-finance.onrender.com/api/category', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -130,7 +130,7 @@ const Header = () => {
             const token = localStorage.getItem('token');
             const decodedToken = jwt_decode(token|| ''); // Decode the JWT token to extract the user ID
             const userId = decodedToken?.userId;
-            const response = await fetch('http://localhost:5000/api/expenses', {
+            const response = await fetch('https://self-manage-finance.onrender.com/api/expenses', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
