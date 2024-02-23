@@ -1,52 +1,91 @@
 // components/Login.js
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { setToken } from '../slices/authSlice';
+import { Button, Form, Input, Alert } from 'antd';
+import { LockOutlined, UserOutlined } from '@ant-design/icons';
+import isNil from 'lodash/isNil';
+import { loginUser } from '../services/http-service';
+import { getToken } from '../services/data-service';
 
 function Login({ setIsLoggedIn }) {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
     const navigate = useNavigate();
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        try {
-            const response = await fetch('https://self-manage-finance.onrender.com/api/users/login', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username, password }),
-            });
-            const data = await response.json();
-            if (response.ok) {
-                console.log('Login successful');
-                localStorage.setItem('token', data.token);
-                setIsLoggedIn(true);
-                navigate('/home'); // Use navigate instead of history.push
-            } else {
-                console.error('Login failed:', data.message);
-            }
-        } catch (error) {
-            console.error('Error logging in:', error);
+    const dispatch = useDispatch();
+    const [alertInfo, setAlertInfo] = useState({message: '', type: 'success'});
+    const [showAlert, setShowAlert] = useState(false);
+    useEffect(() => { 
+        const token = getToken();
+        if (!isNil(token)) {
+            navigate('/home');
         }
+    }, []);
+
+    const handleSubmit = (values) => {
+        setShowAlert(false);
+        loginUser('/api/users/login', JSON.stringify({ username: values.username, password: values.password }))
+            .then((res) => {
+                const { token } = res.data;
+                if (token) {
+                    dispatch(setToken({ token }))
+                    setIsLoggedIn(true);
+                    navigate('/home');
+                } else {
+                    setAlertInfo({ message: 'User Access Token Found', type: 'error' });
+                    setShowAlert(true);
+                }
+            })
+            .catch((err) => {
+                setAlertInfo({ message: `Error while login: ${err}`, type: 'error' });
+                setShowAlert(true);
+            })
     };
 
     return (
-        <div className="Login">
-            <h2>Login</h2>
-            <form onSubmit={handleSubmit}>
-                <label>
-                    Username:
-                    <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
-                </label>
-                <label>
-                    Password:
-                    <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                </label>
-                <button type="submit">Login</button>
-            </form>
-            <p>Don't have an account? <Link to="/register">Register</Link></p>
-        </div>
+        <Form
+            name="normal_login"
+            onFinish={(values) => handleSubmit(values)}
+            className="login-form"
+            style={{ padding: '24px' }}
+            size='large'
+            >
+            <Form.Item
+                name="username"
+                rules={[
+                {
+                    required: true,
+                    message: 'Please input your Username!',
+                },
+                ]}
+            >
+                <Input prefix={<UserOutlined className="site-form-item-icon" />} placeholder="Username" />
+            </Form.Item>
+            <Form.Item
+                name="password"
+                rules={[
+                {
+                    required: true,
+                    message: 'Please input your Password!',
+                },
+                ]}
+            >
+                <Input
+                prefix={<LockOutlined className="site-form-item-icon" />}
+                type="password"
+                placeholder="Password"
+                />
+            </Form.Item>
+
+            {showAlert ?? <Alert message={alertInfo.message} type={ alertInfo.type} />}
+
+            <Form.Item>
+                <Button type="primary" htmlType="submit" className="login-form-button" style={{marginRight: '12px'}}>
+                Log in
+                </Button>
+                <Button className="login-form-button" onClick={() => navigate('/register')}>
+                Register</Button>
+            </Form.Item>
+        </Form>
     );
 }
 

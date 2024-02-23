@@ -1,7 +1,6 @@
 /* eslint-disable react/jsx-filename-extension */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navigation from './navigation/navigation';
-import  Header from './Header';
 function Home() {
   const [selectedMenu, setSelectedMenu] = useState('home');
 
@@ -9,7 +8,7 @@ function Home() {
     <div>
       <Navigation onMenuClick={setSelectedMenu} selected={selectedMenu} />
       <div>
-      <Header/>
+
       </div>
     </div>
   );
