@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
-import Home from './components/Home'
+import Home from './components/home'
 import {
     BrowserRouter,
     Routes,
@@ -9,8 +9,8 @@ import {
     Navigate
 } from "react-router-dom";
 import isNil from 'lodash/isNil';
-import Register from './components/Register';
-import Login from './components/Login';
+import Register from './components/auth/register';
+import Login from './components/auth/login';
 import { getToken } from './services/data-service';
 
 function App() {

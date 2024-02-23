@@ -12,6 +12,6 @@ const root = createRoot(container); // createRoot(container!) if you use TypeScr
 root.render(
     <Provider store={store}>
             <App />
-</Provider>, container);
+</Provider>);
 
 serviceWorker.register();

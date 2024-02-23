@@ -2,12 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
-import { setToken } from '../slices/authSlice';
+import { setToken } from '../../../slices/authSlice';
 import { Button, Form, Input, Alert } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import isNil from 'lodash/isNil';
-import { loginUser } from '../services/http-service';
-import { getToken } from '../services/data-service';
+import { loginUser } from '../../../services/http-service';
+import { getToken } from '../../../services/data-service';
 
 function Login({ setIsLoggedIn }) {
     const navigate = useNavigate();
