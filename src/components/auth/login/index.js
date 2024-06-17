@@ -6,7 +6,7 @@ import { setToken } from '../../../slices/authSlice';
 import { Button, Form, Input, Alert } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import isNil from 'lodash/isNil';
-import { loginUser } from '../../../services/http-service';
+import { postData } from '../../../services/http-service';
 import { getToken } from '../../../services/data-service';
 
 function Login({ setIsLoggedIn }) {
@@ -23,7 +23,7 @@ function Login({ setIsLoggedIn }) {
 
     const handleSubmit = (values) => {
         setShowAlert(false);
-        loginUser('/api/users/login', JSON.stringify({ username: values.username, password: values.password }))
+        postData('/api/users/login', JSON.stringify({ username: values.username, password: values.password }))
             .then((res) => {
                 const { token } = res.data;
                 if (token) {

@@ -1,0 +1,17 @@
+.expense-container {
+    padding: 24px;
+  }
+  
+  .expense-header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  
+  .table-container {
+    margin-top: 24px;
+  }
+  
+  .ant-table {
+    margin-top: 16px;
+  }
+  

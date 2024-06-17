@@ -51,10 +51,47 @@ const _post = (path, params, body) => {
 }
 
 
-export const loginUser = (path, body) => {
+const _put = (path, params, body) => {
+  body = body || {};
+  const url = _getUrl(path, params);
+  const token = getToken();
+  const options = {
+    method: 'put',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  }
+  return axios.put(url, body, options);
+}
+
+const _delete = (path, params) => {
+  const url = _getUrl(path, params);
+  const token = getToken();
+  const options = {
+    method: 'delete',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+  }
+  return axios.delete(url, options);
+}
+
+
+export const postData = (path, body) => {
     return _post(path, {}, body);
 }
 
-export const getCategories = (path, params) => {
+export const fetchData = (path, params) => {
   return _get(path, params);
+}
+
+
+export const updateData = (path, body) => {
+  return _put(path, {}, body);
+}
+
+export const deleteData = (path) => {
+  return _delete(path, {});
 }
