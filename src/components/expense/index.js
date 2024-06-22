@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { jwtDecode as jwt_decode } from 'jwt-decode';
 import { Modal, Button, Row, Col, Table, Space } from 'antd';
 import MyForm from '../form/Form';
-import { postData, fetchData } from '../../services/http-service';
+import { postData, fetchData, deleteData, updateData } from '../../services/http-service';
 import './index.css'; // Import the CSS file for styles
+import _ from 'lodash';
 
 const Expense = () => {
   const [categories, setCategories] = useState([]);
@@ -14,13 +15,8 @@ const Expense = () => {
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
   const [expenseModalVisible, setExpenseModalVisible] = useState(false);
   const [filteredSubcategories, setFilteredSubcategories] = useState([]);
-  const categoriesMap = new Map();
-  const subCategoriesMap = new Map();
-  useEffect(async() => {
-    await fetchCategories();
-    await fetchExpenses();
-  }, []);
 
+ 
   const fetchCategories = async () => {
     try {
       const response = await fetchData(`/api/category`);
@@ -30,9 +26,6 @@ const Expense = () => {
         name: category.category,
       }));
       setCategories(extractedCategories);
-      extractedCategories.forEach(category => {
-        categoriesMap.set(category.id, category.name);
-      });
       const extractedSubcategories = data.reduce((acc, category) => {
         const subs = category.subcategories.map((subcategory) => ({
           id: category._id + '-' + subcategory,
@@ -42,9 +35,6 @@ const Expense = () => {
         return [...acc, ...subs];
       }, []);
       setSubcategories(extractedSubcategories);
-      extractedSubcategories.forEach(subCategory => {
-        subCategoriesMap.set(subCategory.id, subCategory.name);
-      });
     } catch (error) {
       console.error('Error fetching categories:', error);
     }
@@ -55,20 +45,12 @@ const Expense = () => {
       const response = await fetchData(`/api/expenses`);
       const data = await response.data;
 
-      // "_id": "666f0a72f9ee106fb8a2c0ad",
-      // "userId": "65ccba8b3b595a7ae1a39c70",
-      // "category": "food",
-      // "subcategory": "lunch",
-      // "amount": 333,
-      // "comment": "3234234",
-      // "date": "2024-06-16T15:53:22.747Z",
-      // "__v": 0
-      //
       const updatedData = data.map((item) => ({
+        id: item._id,
         comment: item.comment,
         amount: item.amount,
-        category: categoriesMap.get(item.category),
-        subcategory: subCategoriesMap.get(item.subcategory)
+        category: _.get(item,['category','name'], "N/A"),
+        subcategory: _.get(item,['subcategory','name'], "N/A")
       }));
       setExpenses(updatedData);
     } catch (error) {
@@ -122,6 +104,27 @@ const Expense = () => {
     }
   };
 
+
+  const handleDeleteExpense = async (expenseId) => {
+    try {
+      const response = await deleteData(`/api/expenses/${expenseId}`);
+      if (response.status === 200) {
+        console.log('Expense deleted successfully');
+        fetchExpenses();
+      } else {
+        console.error('Failed to delete expense:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error deleting expense:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCategories();
+    fetchExpenses();
+ }, []);
+
+
   const columns = [
     {
       title: 'Category',
@@ -148,19 +151,23 @@ const Expense = () => {
       key: 'actions',
       render: (text, record) => (
         <Space size="middle">
-          <Button onClick={() => handleEditExpense(record)}>Edit</Button>
-          <Button onClick={() => handleDeleteExpense(record.id)} type="danger">Delete</Button>
+        
+        <Button onClick={() => handleDeleteExpense(record.id)} type="danger">Delete</Button>
         </Space>
       ),
     },
   ];
+
   useEffect(() => {
+    
     if (selectedCategory) {
-      setFilteredSubcategories(subcategories.filter(sub => sub.categoryId === selectedCategory));
+      let categoryObj = JSON.parse(selectedCategory);
+      setFilteredSubcategories(subcategories.filter(sub => sub.categoryId === categoryObj.id));
     } else {
       setFilteredSubcategories([]);
     }
   }, [selectedCategory, subcategories]);
+
   const formConfig = [
     {
       type: 'select',
@@ -168,7 +175,7 @@ const Expense = () => {
       name: 'category',
       required: true,
       message: 'Please select a category!',
-      options: categories.map(category => ({ label: category.name, value: category.id })),
+      options: categories.map(category => ({ name: category.name, id: category.id })),
       placeholder: 'Select Category',
       onChange: (value) => setSelectedCategory(value)
     },
@@ -178,15 +185,13 @@ const Expense = () => {
       name: 'subcategory',
       required: true,
       message: 'Please select a subcategory!',
-      options: filteredSubcategories.map(subcategory => ({ label: subcategory.name, value: subcategory.id })),
+      options: filteredSubcategories.map(subcategory => ({ name: subcategory.name, id: subcategory.id })),
       placeholder: 'Select Subcategory',
       onChange: (value) => setSelectedSubcategory(value)
     },
-    { type: 'number', label: 'Money', name: 'money', required: true, message: 'Please input a number!', min: 0, max: 100, placeholder: 'Please Enter Money' },
+    { type: 'number', label: 'Money', name: 'money', required: true, message: 'Please input a number!', min: 0, max: 10000000000, placeholder: 'Please Enter Money' },
     { type: 'text', label: 'Comment', name: 'comment', required: false, message: 'Please input text!', placeholder: 'Please Enter Comment' },
   ];
-
-  
 
   const categoryFormConfig = [
     { type: 'text', label: 'Category', name: 'category', required: true, message: 'Please enter Category!' },

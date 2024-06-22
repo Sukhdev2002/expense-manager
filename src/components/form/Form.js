@@ -14,8 +14,8 @@ const renderField = (field) => {
         return (
           <Select className="form-input" placeholder={field.placeholder} onChange={field.onChange}>
             {field.options.map(option => (
-              <Option key={option.value} value={option.value}>
-                {option.label}
+              <Option key={option.id} value={JSON.stringify(option)}>
+                {option.name}
               </Option>
             ))}
           </Select>
