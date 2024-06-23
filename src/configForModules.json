@@ -1,0 +1,16 @@
+{
+    "expense":{
+        "name": "Expense",
+        "type": "expense"
+    },
+    "investment":{
+        "name":"Investment",
+        "type":"investment"
+    },
+    "saving":{
+        "name":"Savings",
+        "type":"saving"
+    }
+
+}
+

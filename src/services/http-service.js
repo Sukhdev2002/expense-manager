@@ -18,36 +18,34 @@ const _get = (path, params) => {
     }
   };
   const url = _getUrl(path, params);
-    return axios({
-      method: 'get',
-      url: url,
-      params,
-      ...options,
-    });
+  return axios({
+    method: 'get',
+    url: url,
+    ...options,
+  });
 }
 
- const _getUrl = (path, params) => {
-    params = params || {};
-    return `${localhost + path}${
-      !isEmpty(params)
-        ? `?` + queryString.stringify(params)
-        : queryString.stringify(params)
+const _getUrl = (path, params) => {
+  params = params || {};
+  return `${localhost + path}${!isEmpty(params)
+    ? `?` + queryString.stringify(params)
+    : queryString.stringify(params)
     }`;
-  }
-  
+}
+
 const _post = (path, params, body) => {
-    body = body || {};
+  body = body || {};
   const url = _getUrl(path, params);
   const token = getToken();
   const options = {
     method: 'post',
     headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-      },
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
   }
   return axios
-      .post(url, body, options);
+    .post(url, body, options);
 }
 
 
@@ -80,7 +78,7 @@ const _delete = (path, params) => {
 
 
 export const postData = (path, body) => {
-    return _post(path, {}, body);
+  return _post(path, {}, body);
 }
 
 export const fetchData = (path, params) => {
