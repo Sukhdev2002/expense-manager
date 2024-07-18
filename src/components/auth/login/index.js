@@ -12,9 +12,9 @@ import { getToken } from '../../../services/data-service';
 function Login({ setIsLoggedIn }) {
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const [alertInfo, setAlertInfo] = useState({message: '', type: 'success'});
+    const [alertInfo, setAlertInfo] = useState({ message: '', type: 'success' });
     const [showAlert, setShowAlert] = useState(false);
-    useEffect(() => { 
+    useEffect(() => {
         const token = getToken();
         if (!isNil(token)) {
             navigate('/home');
@@ -23,7 +23,7 @@ function Login({ setIsLoggedIn }) {
 
     const handleSubmit = (values) => {
         setShowAlert(false);
-        postData('/api/users/login', JSON.stringify({ username: values.username, password: values.password }))
+        postData('/api/users/login', JSON.stringify({ name: values.username, password: values.password }))
             .then((res) => {
                 const { token } = res.data;
                 if (token) {
@@ -48,14 +48,14 @@ function Login({ setIsLoggedIn }) {
             className="login-form"
             style={{ padding: '24px' }}
             size='large'
-            >
+        >
             <Form.Item
                 name="username"
                 rules={[
-                {
-                    required: true,
-                    message: 'Please input your Username!',
-                },
+                    {
+                        required: true,
+                        message: 'Please input your Username!',
+                    },
                 ]}
             >
                 <Input prefix={<UserOutlined className="site-form-item-icon" />} placeholder="Username" />
@@ -63,27 +63,27 @@ function Login({ setIsLoggedIn }) {
             <Form.Item
                 name="password"
                 rules={[
-                {
-                    required: true,
-                    message: 'Please input your Password!',
-                },
+                    {
+                        required: true,
+                        message: 'Please input your Password!',
+                    },
                 ]}
             >
                 <Input
-                prefix={<LockOutlined className="site-form-item-icon" />}
-                type="password"
-                placeholder="Password"
+                    prefix={<LockOutlined className="site-form-item-icon" />}
+                    type="password"
+                    placeholder="Password"
                 />
             </Form.Item>
 
-            {showAlert ?? <Alert message={alertInfo.message} type={ alertInfo.type} />}
+            {showAlert ?? <Alert message={alertInfo.message} type={alertInfo.type} />}
 
             <Form.Item>
-                <Button type="primary" htmlType="submit" className="login-form-button" style={{marginRight: '12px'}}>
-                Log in
+                <Button type="primary" htmlType="submit" className="login-form-button" style={{ marginRight: '12px' }}>
+                    Log in
                 </Button>
                 <Button className="login-form-button" onClick={() => navigate('/register')}>
-                Register</Button>
+                    Register</Button>
             </Form.Item>
         </Form>
     );

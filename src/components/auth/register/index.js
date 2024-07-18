@@ -1,24 +1,18 @@
 // components/Register.js
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-
+import { Modal, Button, Row, Col, Table, Space, Spin, Select, Card } from 'antd';
+import MyForm from '../../form/Form';
+import { postData } from '../../../services/http-service';
 function Register() {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
     const navigate = useNavigate();
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
+    const [registerModalVisible, setRegisterModalVisible] = useState(false);
+    const handleSubmit = async (value) => {
+        // e.preventDefault();
         try {
-            const response = await fetch('https://self-manage-finance.onrender.com/api/users/register', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username, password }),
-            });
-            const data = await response.json();
-            if (response.ok) {
+            const response = await postData('/api/users/register', JSON.stringify(value),
+            );
+            if (response.status === 201) {
                 console.log('Registration successful');
                 navigate('/login'); // Use navigate instead of history.push
             } else {
@@ -29,21 +23,33 @@ function Register() {
         }
     };
 
+    const formConfig = [
+        { type: 'text', label: 'Name', name: 'name', required: false, message: 'Please input text!', placeholder: 'Please Enter Name' },
+        { type: 'text', label: 'Email', name: 'email', required: false, message: 'Please input text!', placeholder: 'Please Enter email' },
+        { type: 'text', label: 'Phone', name: 'phone', required: false, message: 'Please input text!', placeholder: 'Please Enter Phone No.' },
+        {
+            type: 'select',
+            label: 'Gender',
+            name: 'gender',
+            required: true,
+            message: 'Please select Gender',
+            options: [{ name: "Male", id: "male" }, { name: "Female", id: "female" }],
+            placeholder: 'Select Gender'
+        },
+        { type: 'text', label: 'Password', name: 'password', required: false, message: 'Please input text!', placeholder: 'Please Enter Password' },
+    ];
     return (
         <div className="Register">
-            <h2>Register</h2>
-            <form onSubmit={handleSubmit}>
-                <label>
-                    Username:
-                    <input type="text" value={username} onChange={(e) => setUsername(e.target.value)} />
-                </label>
-                <label>
-                    Password:
-                    <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                </label>
-                <button type="submit">Register</button>
-            </form>
-            <p>Already have an account? <Link to="/login">Login</Link></p>
+            <Button style={{ width: '100%' }} onClick={() => setRegisterModalVisible(true)}>Register</Button>
+
+            <Modal
+                title={`Register`}
+                visible={registerModalVisible}
+                onCancel={() => setRegisterModalVisible(false)}
+                footer={null}
+            >
+                <MyForm fields={formConfig} onSubmit={handleSubmit} />
+            </Modal>
         </div>
     );
 }

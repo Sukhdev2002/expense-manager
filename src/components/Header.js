@@ -16,7 +16,7 @@ const Expense = () => {
   const [filteredSubcategories, setFilteredSubcategories] = useState([]);
   const categoriesMap = new Map();
   const subCategoriesMap = new Map();
-  useEffect(async() => {
+  useEffect(async () => {
     await fetchCategories();
     await fetchExpenses();
   }, []);
@@ -86,7 +86,7 @@ const Expense = () => {
         category: values.category,
         subcategories: values.subcategories.split(','),
       }));
-      if (response.ok) {
+      if (response.status === 201) {
         console.log('Category added successfully');
         fetchCategories();
         setCategoryModalVisible(false);
@@ -110,7 +110,7 @@ const Expense = () => {
         amount: values.money,
         comment: values.comment,
       }));
-      if (response.ok) {
+      if (response.status === 201) {
         console.log('Expense added successfully');
         fetchExpenses();
         setExpenseModalVisible(false);
@@ -176,7 +176,7 @@ const Expense = () => {
     { type: 'text', label: 'Comment', name: 'comment', required: false, message: 'Please input text!', placeholder: 'Please Enter Comment' },
   ];
 
-  
+
 
   const categoryFormConfig = [
     { type: 'text', label: 'Category', name: 'category', required: true, message: 'Please enter Category!' },

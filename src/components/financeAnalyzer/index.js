@@ -103,7 +103,7 @@ const FinanceAnalyzer = ({ module }) => {
                 category: values.category,
                 subcategories: values.subcategories.split(','),
             }));
-            if (response.ok) {
+            if (response.status === 201) {
                 console.log('Category added successfully');
                 fetchCategories();
                 setCategoryModalVisible(false);
@@ -128,7 +128,7 @@ const FinanceAnalyzer = ({ module }) => {
                 amount: values.money,
                 comment: values.comment,
             }));
-            if (response.ok) {
+            if (response.status === 201) {
                 console.log(`${moduleName} added successfully`);
                 fetchExpenses(selectedMonth);
                 setExpenseModalVisible(false);
