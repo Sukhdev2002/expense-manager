@@ -1,9 +1,18 @@
-import React from 'react'
+import React, { useState, useEffect } from 'react';
 
-function Expense() {
+import _ from 'lodash';
+import FinanceAnalyzer from '../financeAnalyzer/index';
+
+
+const Expense = () => {
+
+  const moduleName = "expense";
+
   return (
-    <div>Expense</div>
-  )
-}
+    <div >
+      <FinanceAnalyzer module={moduleName} />
+    </div>
+  );
+};
 
-export default Expense
+export default Expense;

@@ -1,8 +1,11 @@
 import React from 'react'
-
+import FinanceAnalyzer from '../financeAnalyzer/index';
 function Savings() {
+  const moduleName = "saving";
   return (
-    <div>Savings</div>
+    <div >
+      <FinanceAnalyzer module={moduleName} />
+    </div>
   )
 }
 

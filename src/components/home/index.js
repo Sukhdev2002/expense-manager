@@ -6,6 +6,7 @@ import Expense from '../expense';
 import Investment from '../investment';
 import Savings from '../savings';
 import Profile from '../profile';
+import Category from '../category'
 
 function Home() {
   const [selectedMenu, setSelectedMenu] = useState('home');
@@ -20,6 +21,8 @@ function Home() {
         return <Investment />;
       case 'savings':
         return <Savings />;
+      case 'category':
+        return <Category />;
       case 'profile':
         return <Profile />;
     }
