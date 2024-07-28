@@ -160,7 +160,7 @@ function Login({ setIsLoggedIn }) {
 
             } else {
                 notification.error({
-                    message: 'Registration Failed',
+                    message: 'Password reseting Failed',
                     description: "Otp Verification is Pending",
                 });
             }

@@ -21,10 +21,10 @@ function Home() {
         return <Investment />;
       case 'savings':
         return <Savings />;
-      case 'profile':
-        return <Profile />;
       case 'category':
         return <Category />;
+      case 'profile':
+        return <Profile />;
     }
   }
 

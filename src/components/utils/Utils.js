@@ -1,4 +1,5 @@
 import { postData, fetchData, deleteData, updateData } from '../../services/http-service';
+import { notification } from 'antd';
 
 export const handleDeleteRecord = async (recordName, endpoint, recordId) => {
     try {
@@ -48,9 +49,24 @@ export const handleAddRecord = async (endpoint, newRecord) => {
 
 export const passwordReset = async (values) => {
     try {
-        const response = await postData(`/api/${endpoint}`, JSON.stringify(values));
+        const response = await postData(`/api/users/forgot-password`, JSON.stringify(values));
+        if (response.status === 200) {
+            console.log('password updated successfully');
+            notification.info({
+                message: 'Successfully updated password',
+                description: "Your password has been updated successfully"
+            });
+            return true;
+        } else {
+            console.error('Failed to updating password:');
+            notification.error({
+                message: 'Password reseting Failed',
+                description: "Your password is Not updated"
+            });
+            return false;
+        }
 
     } catch (error) {
-
+        console.error('Error updating password:', error);
     }
 }
