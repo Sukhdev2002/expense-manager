@@ -20,6 +20,7 @@ function Navigation(props) {
     items.push({ label: 'Investment', icon: <FundFilled />, key: 'investment' });
     items.push({ label: 'Savings', icon: <MoneyCollectFilled />, key: 'savings' });
     items.push({ label: 'Profile', icon: <UserOutlined />, key: 'profile' });
+    items.push({ label: 'Category', icon: <UserOutlined />, key: 'category' });
     return items;
   };
 

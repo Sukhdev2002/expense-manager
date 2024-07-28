@@ -1,57 +1,75 @@
-import React, { useState, useEffect } from 'react';
+
+import React, { useState, useEffect, useMemo } from 'react';
 import { jwtDecode as jwt_decode } from 'jwt-decode';
-import { Modal, Button, Row, Col, Table, Space, Spin, Select, Card } from 'antd';
+import { Modal, Button, Row, Col, Table, Space, Select, Card, Spin } from 'antd';
 import MyForm from '../form/Form';
-import { postData, fetchData, deleteData, updateData } from '../../services/http-service';
+import { postData, fetchData, deleteData } from '../../services/http-service';
 import { PieChart, Pie, Tooltip, Legend, ResponsiveContainer, Cell } from 'recharts';
 import './index.css'; // Import the CSS file for styles
 import _ from 'lodash';
 import moment from 'moment';
 import config from '../../configForModules.json';
+import { handleDeleteRecord, handleUpdateRecord, handleAddRecord } from '../utils/Utils';
+import DonutChart from '../charts/chart';
 const { Option } = Select;
 
 const FinanceAnalyzer = ({ module }) => {
     const moduleConfig = _.get(config, module, {});
     const moduleName = _.get(moduleConfig, 'name', "");
     const moduleType = _.get(moduleConfig, 'type', "");
-    const [categories, setCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState('');
-    const [selectedSubcategory, setSelectedSubcategory] = useState('');
-    const [subcategories, setSubcategories] = useState([]);
     const [expenses, setExpenses] = useState([]);
-    const [categoryModalVisible, setCategoryModalVisible] = useState(false);
     const [expenseModalVisible, setExpenseModalVisible] = useState(false);
     const [filteredSubcategories, setFilteredSubcategories] = useState([]);
     const [chartData, setChartData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [selectedMonth, setSelectedMonth] = useState(moment().startOf('month').format('YYYY-MM'));
-    const [totalMonthlyExpense, setTotalMonthlyExpense] = useState(0);
+
     const [selectedCategoryForChart, setSelectedCategoryForChart] = useState('');
     const [categoryDataForTable, setCategoryDataForTable] = useState([]);
+    const [categoryData, setCategoryData] = useState({});
 
+    useEffect(() => {
+        if (selectedMonth) {
+            fetchExpenses(selectedMonth);
+            fetchChartData(selectedMonth);
+        }
+    }, [selectedMonth]);
+
+    useEffect(() => {
+        if (selectedCategory) {
+            const categoryId = _.get(JSON.parse(selectedCategory), 'id', "");
+            setFilteredSubcategories(_.get(categoryData[categoryId], 'subCategoryObj', []));
+        }
+    }, [selectedCategory, categoryData]);
+
+    useEffect(() => {
+        fetchCategories();
+    }, [])
     const fetchCategories = async () => {
         try {
-            const response = await fetchData(`/api/category`, { moduleCode: moduleType });
-            const data = await response.data;
-            const extractedCategories = data.map((category) => ({
-                id: category._id,
-                name: category.category,
-            }));
-            setCategories(extractedCategories);
-            const extractedSubcategories = data.reduce((acc, category) => {
-                const subs = category.subcategories.map((subcategory) => ({
-                    id: category._id + '-' + subcategory,
-                    name: subcategory,
+            const [categoryResponse, subCategoryResponse] = await Promise.all([
+                fetchData(`/api/category`, { moduleCode: moduleType }),
+                fetchData(`/api/subcategory`, { moduleCode: moduleType })
+            ]);
+
+            const categoryData = await categoryResponse.data;
+            const subCategoryData = await subCategoryResponse.data;
+
+            const categoryWithSubcategory = categoryData.reduce((acc, category) => {
+                const subCategories = subCategoryData.filter(subCat => subCat.category === category._id);
+                acc[category._id] = {
                     categoryId: category._id,
-                }));
-                return [...acc, ...subs];
-            }, []);
-            setSubcategories(extractedSubcategories);
-            return { extractedCategories, extractedSubcategories };
+                    categoryName: category.category,
+                    subCategoryObj: subCategories,
+                };
+                return acc;
+            }, {});
+
+            setCategoryData(categoryWithSubcategory);
         } catch (error) {
             console.error('Error fetching categories:', error);
         }
-        return {};
     };
 
     const fetchExpenses = async (month) => {
@@ -59,18 +77,18 @@ const FinanceAnalyzer = ({ module }) => {
             setLoading(true);
             const response = await fetchData(`/api/expenses`, { moduleCode: moduleType, month: month });
             const data = await response.data;
-            const updatedData = data.map((item) => ({
+            const updatedData = data.map(item => ({
                 id: item._id,
                 date: moment(item.date).format('DD-MM-YYYY::HH:mm'),
                 comment: item.comment,
                 amount: item.amount,
-                category: _.get(item, ['category', 'name'], "N/A"),
-                subcategory: _.get(item, ['subcategory', 'name'], "N/A"),
+                category: item.category,
+                subcategory: item.subcategory,
             }));
             setExpenses(updatedData);
-            setLoading(false);
         } catch (error) {
             console.error(`Error fetching ${moduleName}:`, error);
+        } finally {
             setLoading(false);
         }
     };
@@ -79,39 +97,33 @@ const FinanceAnalyzer = ({ module }) => {
         try {
             const response = await fetchData(`/api/expenses`, { moduleCode: moduleType, month: month });
             const data = await response.data;
+            const result = {};
+            data.forEach(item => {
+                const categoryName = _.get(item, ['category', 'name'], 'N/A');
+                const subcategoryName = _.get(item, ['subcategory', 'name'], 'N/A');
 
-            const formattedData = data.map((item) => ({
-                name: _.get(item, ['category', 'name'], "N/A"),
-                value: item.amount,
-            }));
-            let totalAmount = formattedData.reduce((acc, item) => acc + item.value, 0);
-            setTotalMonthlyExpense(totalAmount);
+                if (!result[categoryName]) {
+                    result[categoryName] = {};
+                }
+
+                if (!result[categoryName][subcategoryName]) {
+                    result[categoryName][subcategoryName] = 0;
+                }
+
+                result[categoryName][subcategoryName] += item.amount;
+            });
+
+            let formattedData = Object.entries(result).flatMap(([categoryName, subcategories]) =>
+                Object.entries(subcategories).map(([subcategoryName, amount]) => ({
+                    category: categoryName,
+                    name: subcategoryName,
+                    value: amount
+                }))
+            );
             setChartData(formattedData);
+
         } catch (error) {
             console.error('Error fetching chart data:', error);
-        }
-    };
-
-    const handleAddCategory = async (values) => {
-        try {
-            const token = localStorage.getItem('token');
-            const decodedToken = jwt_decode(token || '');
-            const userId = decodedToken?.userId;
-            const response = await postData(`/api/category`, JSON.stringify({
-                moduleCode: moduleType,
-                userId: userId,
-                category: values.category,
-                subcategories: values.subcategories.split(','),
-            }));
-            if (response.status === 201) {
-                console.log('Category added successfully');
-                fetchCategories();
-                setCategoryModalVisible(false);
-            } else {
-                console.error('Failed to add category:', response.statusText);
-            }
-        } catch (error) {
-            console.error('Error adding category:', error);
         }
     };
 
@@ -130,7 +142,8 @@ const FinanceAnalyzer = ({ module }) => {
             }));
             if (response.status === 201) {
                 console.log(`${moduleName} added successfully`);
-                fetchExpenses(selectedMonth);
+                await fetchExpenses(selectedMonth);
+                await fetchChartData(selectedMonth);
                 setExpenseModalVisible(false);
             } else {
                 console.error(`Failed to add ${moduleName}:`, response.statusText);
@@ -141,53 +154,44 @@ const FinanceAnalyzer = ({ module }) => {
     };
 
     const handleDeleteExpense = async (expenseId) => {
-        try {
-            const response = await deleteData(`/api/expenses/${expenseId}`);
-            if (response.status === 200) {
-                console.log(`${moduleName} deleted successfully`);
-                fetchExpenses(selectedMonth);
-            } else {
-                console.error(`Failed to delete ${moduleName}:`, response.statusText);
-            }
-        } catch (error) {
-            console.error(`Error deleting ${moduleName}:`, error);
-        }
+
+        await handleDeleteRecord(moduleName, "expenses", expenseId);
+        await fetchExpenses(selectedMonth);
+        await fetchChartData(selectedMonth);
+
     };
 
-    useEffect(() => {
-        fetchCategories();
-    }, []);
-
-    useEffect(() => {
-        if (selectedMonth) {
-            fetchExpenses(selectedMonth);
-            fetchChartData(selectedMonth);
-        }
-    }, [selectedMonth]);
-
-    useEffect(() => {
-        if (selectedCategory) {
-            let categoryObj = JSON.parse(selectedCategory);
-            setFilteredSubcategories(subcategories.filter(sub => sub.categoryId === categoryObj.id));
-        } else {
-            setFilteredSubcategories([]);
-        }
-    }, [selectedCategory, subcategories]);
-
-    useEffect(() => {
-        const categoryData = categories.map(category => {
-            const categoryExpenses = expenses.filter(expense => expense.category === category.name);
-            const totalAmount = categoryExpenses.reduce((acc, expense) => acc + expense.amount, 0);
-
-            return {
-                key: category.id,
-                category: category.name,
-                amount: totalAmount,
-                subcategories: categoryExpenses,
+    const processExpensesByCategory = useMemo(() => {
+        const categoryMap = _.reduce(categoryData, (acc, category, categoryId) => {
+            acc[categoryId] = {
+                key: categoryId,
+                category: category.categoryName,
+                amount: 0,
+                subcategories: [],
             };
+            return acc;
+        }, {});
+
+        _.forEach(expenses, (expense) => {
+            const categoryId = expense.category.id;
+            if (categoryMap[categoryId]) {
+                categoryMap[categoryId].amount += expense.amount;
+                categoryMap[categoryId].subcategories.push({
+                    subcategory: expense.subcategory.name,
+                    amount: expense.amount,
+                    comment: expense.comment,
+                    date: expense.date,
+                    id: expense.id,
+                });
+            }
         });
-        setCategoryDataForTable(categoryData);
-    }, [expenses, categories]);
+
+        return _.values(categoryMap);
+    }, [expenses, categoryData]);
+
+    useEffect(() => {
+        setCategoryDataForTable(processExpensesByCategory);
+    }, [processExpensesByCategory]);
 
     const columns = [
         {
@@ -218,7 +222,10 @@ const FinanceAnalyzer = ({ module }) => {
             name: 'category',
             required: true,
             message: 'Please select a category!',
-            options: categories.map(category => ({ name: category.name, id: category.id })),
+            options: _.map(Object.values(categoryData), ({ categoryName, categoryId }) => ({
+                name: categoryName,
+                id: categoryId,
+            })),
             placeholder: 'Select Category',
             onChange: (value) => setSelectedCategory(value)
         },
@@ -228,23 +235,34 @@ const FinanceAnalyzer = ({ module }) => {
             name: 'subcategory',
             required: true,
             message: 'Please select a subcategory!',
-            options: filteredSubcategories.map(subcategory => ({ name: subcategory.name, id: subcategory.id })),
+            options: filteredSubcategories.map(subcategory => ({ name: subcategory.subcategory, id: subcategory._id })),
             placeholder: 'Select Subcategory',
-            onChange: (value) => setSelectedSubcategory(value)
         },
-        { type: 'number', label: 'Money', name: 'money', required: true, message: 'Please input a number!', min: 0, max: 10000000000, placeholder: 'Please Enter Money' },
-        { type: 'text', label: 'Comment', name: 'comment', required: false, message: 'Please input text!', placeholder: 'Please Enter Comment' },
-    ];
-
-    const categoryFormConfig = [
-        { type: 'text', label: 'Category', name: 'category', required: true, message: 'Please enter Category!' },
-        { type: 'text', label: 'Subcategories', name: 'subcategories', required: true, message: 'Please enter Subcategories!' }
+        {
+            type: 'number',
+            label: 'Money',
+            name: 'money',
+            required: true,
+            message: 'Please input a number!',
+            min: 0,
+            max: 10000000000,
+            placeholder: 'Please Enter Money'
+        },
+        {
+            type: 'text',
+            label: 'Comment',
+            name: 'comment',
+            required: false,
+            message: 'Please input text!',
+            placeholder: 'Please Enter Comment'
+        },
     ];
 
     const lastFiveMonths = [];
     for (let i = 0; i < 5; i++) {
         lastFiveMonths.push(moment().subtract(i, 'months').startOf('month').format('YYYY-MM'));
     }
+
     const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF', '#00BFFF', '#FF00FF', '#FFFF00', '#808000', '#800000'];
 
     const expandedRowRender = (record) => {
@@ -256,7 +274,7 @@ const FinanceAnalyzer = ({ module }) => {
             {
                 title: 'Actions',
                 key: 'actions',
-                render: (text, subrecord) => (
+                render: (subrecord) => (
                     <Space size="middle">
                         <Button onClick={() => handleDeleteExpense(subrecord.id)} type="danger">Delete</Button>
                     </Space>
@@ -268,8 +286,6 @@ const FinanceAnalyzer = ({ module }) => {
 
     return (
         <div className="expense-container">
-
-
             <Modal
                 title={`Add ${moduleName}`}
                 visible={expenseModalVisible}
@@ -279,26 +295,13 @@ const FinanceAnalyzer = ({ module }) => {
                 <MyForm fields={formConfig} onSubmit={handleAddExpense} />
             </Modal>
 
-            <Modal
-                title="Add Category"
-                visible={categoryModalVisible}
-                onCancel={() => setCategoryModalVisible(false)}
-                footer={null}
-            >
-                <MyForm fields={categoryFormConfig} onSubmit={handleAddCategory} />
-            </Modal>
-
             <div className="chart-and-table-container">
                 <Row gutter={[16, 16]}>
                     <Col span={14}>
                         <Card title={moduleName}>
                             <Row gutter={[16, 16]}>
-
                                 <Col span={8}>
                                     <Button style={{ width: '100%' }} onClick={() => setExpenseModalVisible(true)}>Add {moduleName}</Button>
-                                </Col>
-                                <Col span={8}>
-                                    <Button style={{ width: '100%' }} onClick={() => setCategoryModalVisible(true)}>Add Category</Button>
                                 </Col>
                                 <Col span={8}>
                                     <Select
@@ -312,40 +315,24 @@ const FinanceAnalyzer = ({ module }) => {
                                     </Select>
                                 </Col>
                             </Row>
-                            <Table
-                                columns={columns}
-                                expandable={{ expandedRowRender }}
-                                dataSource={categoryDataForTable}
-                                pagination={false}
-                            />
+                            {loading ? <Spin /> : (
+                                <Table
+                                    columns={columns}
+                                    expandable={{ expandedRowRender }}
+                                    dataSource={categoryDataForTable}
+                                    pagination={false}
+                                />
+                            )}
                         </Card>
                     </Col>
 
                     <Col span={10}>
                         {selectedCategoryForChart && (
-                            // <div className="chart-container" >
-                            <Card title={`${moduleName} Chart for ${selectedCategoryForChart}`} >
-                                {/* <h2>Expense Chart for {selectedCategoryForChart}</h2> */}
+                            <Card title={`${moduleName} Chart for ${selectedCategoryForChart}`}>
                                 <ResponsiveContainer width="100%" height={400}>
-                                    <PieChart>
-                                        <Pie
-                                            data={chartData.filter(item => item.name === selectedCategoryForChart)}
-                                            dataKey="value"
-                                            nameKey="name"
-                                            cx="50%"
-                                            cy="50%"
-                                            outerRadius={150}
-                                            label
-                                        >
-                                            {chartData.map((entry, index) => (
-                                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                            ))}
-                                        </Pie>
-                                        <Tooltip />
-                                        <Legend />
-                                    </PieChart>
+
+                                    <DonutChart data={chartData.filter(item => item.category === selectedCategoryForChart)} />
                                 </ResponsiveContainer>
-                                {/* </div> */}
                             </Card>
                         )}
                     </Col>

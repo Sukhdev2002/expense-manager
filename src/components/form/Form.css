@@ -19,3 +19,8 @@
     width: 100%;
   }
   
+  .link {
+    font-weight: 600;
+    color: blue;
+    text-decoration: underline;
+  }
