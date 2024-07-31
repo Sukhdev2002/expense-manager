@@ -4,8 +4,8 @@ import isEmpty from 'lodash/isEmpty';
 import { getToken, getUserId } from './data-service';
 
 
-const baseUrl = 'https://self-manage-finance.onrender.com';
-const localhost = 'http://localhost:5000';
+// const baseUrl = 'https://self-manage-finance.onrender.com';
+const baseUrl = 'http://localhost:9000';
 
 
 const _get = (path, params) => {
@@ -27,7 +27,7 @@ const _get = (path, params) => {
 
 const _getUrl = (path, params) => {
   params = params || {};
-  return `${localhost + path}${!isEmpty(params)
+  return `${baseUrl + path}${!isEmpty(params)
     ? `?` + queryString.stringify(params)
     : queryString.stringify(params)
     }`;
