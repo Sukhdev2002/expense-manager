@@ -5,7 +5,7 @@ import { getToken, getUserId } from './data-service';
 
 
 // const baseUrl = 'https://self-manage-finance.onrender.com';
-const baseUrl = 'http://localhost:9000';
+const baseUrl = 'https://manage-finance.vercel.app';
 
 
 const _get = (path, params) => {
