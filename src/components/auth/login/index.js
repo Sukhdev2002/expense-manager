@@ -34,11 +34,11 @@ function Login({ setIsLoggedIn }) {
     const loginFormConfig = [
         {
             type: 'text',
-            label: 'Username',
-            name: 'username',
+            label: 'Email',
+            name: 'email',
             required: true,
-            message: 'Please input a Username!',
-            placeholder: 'Please Enter Username'
+            message: 'Please input a Email!',
+            placeholder: 'Please Enter Email'
         },
         {
             type: 'password',
@@ -105,7 +105,7 @@ function Login({ setIsLoggedIn }) {
 
     const handleLogin = async (values) => {
         try {
-            const res = await postData('/api/users/login', JSON.stringify({ name: values.username, password: values.password }));
+            const res = await postData('/api/users/login', JSON.stringify({ email: values.email, password: values.password }));
             const { token } = res.data;
             setLoginpModalVisible(false);
             if (token) {
